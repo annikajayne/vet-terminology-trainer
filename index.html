@@ -14,7 +14,7 @@ body{margin:0}
 [hidden]{display:none!important}
 img{max-width:100%}
 
-/* Layout: one centred column (max 680px) — home picks a game + topic, play shows one big word part with four answer tiles, results lists what to revise. */
+/* Layout: one centred column (max 680px) — home picks a game + topic, play shows one big term with four answer tiles, results lists what to revise. */
 :root{
   --bg:#EDF2F1; --surface:#FFFFFF; --sunk:#E2EAE8; --ink:#14211F; --muted:#566966; --line:#CFDBD8;
   --accent:#0B7268; --accent-ink:#FFFFFF; --accent-soft:#D5EBE7;
@@ -220,14 +220,15 @@ const LEVELS = [['all','All levels','Mix of all four'],
 const LEVEL_NAMES = {1:'Foundation',2:'Core',3:'Intermediate',4:'Advanced'};
 const dots = lv => lv==='all' ? '' : `<span class="dots" aria-label="Level ${lv}">${[1,2,3,4].map(k=>`<i class="${k<=+lv?'on':''}"></i>`).join('')}</span>`;
 const MODES = {
-  meaning:{name:'Meaning match',desc:'See a word part, pick what it means.'},
-  reverse:{name:'Name the part',desc:'See a meaning, pick the word part.'},
+  meaning:{name:'Meaning match',desc:'See a prefix, suffix or root word, pick what it means.'},
+  reverse:{name:'Name the part',desc:'See a meaning, pick the prefix, suffix or root word.'},
   decode:{name:'Decode the term',desc:'Read a whole term, pick its definition.'},
   abbr:{name:'Abbreviations & terms',desc:'Clinic shorthand and everyday clinical words.'},
-  opposites:{name:'Opposites',desc:'Pick the antonym for each word part.'},
+  opposites:{name:'Opposites',desc:'Pick the opposite of each prefix, suffix or term.'},
   blitz:{name:'60-second blitz',desc:'Mixed questions against the clock.'}
 };
 const PART_ONLY = ['prefix','suffix','position'];
+const partKind = it => it.t==='prefix' ? 'prefix' : it.t==='suffix' ? 'suffix' : 'root word';
 
 /* ---------- colour themes ---------- */
 const SKINS = {"theatre": {"name": "Theatre", "group": "light", "t": {"--bg": "#E7F0F7", "--surface": "#FFFFFF", "--sunk": "#D5E5F1", "--ink": "#0E2236", "--muted": "#4E6479", "--line": "#C2D6E6", "--accent": "#1E5F8C", "--accent-ink": "#FFFFFF", "--accent-soft": "#D3E4F2", "--good": "#1E7A46", "--good-soft": "#DCF0E3", "--bad": "#B42318", "--bad-soft": "#FBE3E0", "--pulse": "#0E7C86"}}, "kennel": {"name": "Kennel", "group": "light", "t": {"--bg": "#F2EADD", "--surface": "#FFFBF4", "--sunk": "#E8DDCB", "--ink": "#2B2118", "--muted": "#6E5E4E", "--line": "#DACBB4", "--accent": "#B0502C", "--accent-ink": "#FFFFFF", "--accent-soft": "#F2DBCD", "--good": "#4A7A2C", "--good-soft": "#E2ECD4", "--bad": "#A3261B", "--bad-soft": "#F5DAD3", "--pulse": "#B0502C"}}, "pastel": {"name": "Pastel", "group": "light", "t": {"--bg": "#F4F2FB", "--surface": "#FFFFFF", "--sunk": "#EBE7F6", "--ink": "#2A2540", "--muted": "#6B6585", "--line": "#DCD6EE", "--accent": "#6F60BD", "--accent-ink": "#FFFFFF", "--accent-soft": "#E5E0F7", "--good": "#2B8A66", "--good-soft": "#DBF2E8", "--bad": "#C04A36", "--bad-soft": "#FCE3DA", "--pulse": "#D9805F"}}, "fairyfloss": {"name": "Fairy floss", "group": "light", "t": {"--bg": "#FCEEF4", "--surface": "#FFFFFF", "--sunk": "#F7DEE9", "--ink": "#3A1E2C", "--muted": "#7A5869", "--line": "#F0CEDC", "--accent": "#D23F7B", "--accent-ink": "#FFFFFF", "--accent-soft": "#FADCE8", "--good": "#23855C", "--good-soft": "#DDF2E8", "--bad": "#B4232F", "--bad-soft": "#FBE0E2", "--pulse": "#D23F7B"}}, "bondi": {"name": "Bondi", "group": "light", "t": {"--bg": "#E5F5FF", "--surface": "#FFFFFF", "--sunk": "#CCEAFB", "--ink": "#062033", "--muted": "#3D5F75", "--line": "#B6DEF5", "--accent": "#0083C9", "--accent-ink": "#FFFFFF", "--accent-soft": "#D0EDFC", "--good": "#12825A", "--good-soft": "#DAF2E7", "--bad": "#C02626", "--bad-soft": "#FDE1E1", "--pulse": "#F26B0F"}}, "sunshine": {"name": "Sunshine", "group": "light", "t": {"--bg": "#FFF4C4", "--surface": "#FFFFFF", "--sunk": "#FFE79A", "--ink": "#2B1F00", "--muted": "#6B5718", "--line": "#FFDC73", "--accent": "#E8590C", "--accent-ink": "#FFFFFF", "--accent-soft": "#FFE0C7", "--good": "#1D7A43", "--good-soft": "#DDF2E3", "--bad": "#B42318", "--bad-soft": "#FDE2DE", "--pulse": "#E8590C"}}, "eucalyptus": {"name": "Eucalyptus", "group": "light", "t": {"--bg": "#EDF2E8", "--surface": "#FBFCF8", "--sunk": "#DDE7D5", "--ink": "#1B2A1B", "--muted": "#526350", "--line": "#C9D8C0", "--accent": "#3D7337", "--accent-ink": "#FFFFFF", "--accent-soft": "#DAEAD2", "--good": "#17734B", "--good-soft": "#D8EFE1", "--bad": "#B42318", "--bad-soft": "#FAE2DE", "--pulse": "#B7861A"}}, "nightshift": {"name": "Night shift", "group": "dark", "t": {"--bg": "#1A1424", "--surface": "#241C31", "--sunk": "#2E253F", "--ink": "#EFE9F7", "--muted": "#AA9EBD", "--line": "#3A2F4D", "--accent": "#B9A0FF", "--accent-ink": "#1C0F36", "--accent-soft": "#372A58", "--good": "#5FD39A", "--good-soft": "#163427", "--bad": "#FF8E8E", "--bad-soft": "#41202A", "--pulse": "#FF9CC8"}}, "highcontrast": {"name": "High contrast", "group": "dark", "t": {"--bg": "#0B0B0B", "--surface": "#131313", "--sunk": "#1F1F1F", "--ink": "#FFFFFF", "--muted": "#E2E2E2", "--line": "#BDBDBD", "--accent": "#FFD54A", "--accent-ink": "#0B0B0B", "--accent-soft": "#2C2510", "--good": "#5BE49B", "--good-soft": "#0E2A1B", "--bad": "#FF8C8C", "--bad-soft": "#3A1212", "--pulse": "#FFD54A"}}};
@@ -322,13 +323,13 @@ function makeQ(kind, item){
   if (kind==='meaning'){
     const same = P.filter(x => x.c===item.c), typ = P.filter(x => x.t===item.t);
     const ds = pickDistractors(item.m, meaningsOf[item.p], [same, typ, P], x => x.m);
-    q = {ask:'What does this word part mean?', big:item.p, correct:item.m, ds, partOpts:false,
+    q = {ask:`What does this ${partKind(item)} mean?`, big:item.p, correct:item.m, ds, partOpts:false,
          explain:`<div><b>${esc(item.p)}</b> = ${esc(item.m)}</div><ul>${item.e.map(e=>`<li>${esc(e)}</li>`).join('')}</ul>`};
   } else if (kind==='reverse'){
     const banned = P.filter(x => norm(x.m)===norm(item.m)).map(x => norm(x.p));
     const same = P.filter(x => x.c===item.c), typ = P.filter(x => x.t===item.t);
     const ds = pickDistractors(item.p, banned, [same, typ], x => x.p);
-    q = {ask:'Which word part means…', big:item.m, correct:item.p, ds, partOpts:true,
+    q = {ask:`Which ${partKind(item)} means…`, big:item.m, correct:item.p, ds, partOpts:true,
          explain:`<div><b>${esc(item.p)}</b> = ${esc(item.m)}</div><ul>${item.e.map(e=>`<li>${esc(e)}</li>`).join('')}</ul>`};
   } else if (kind==='decode'){
     const same = T.filter(x => x.s===item.s);
@@ -473,9 +474,9 @@ function suggestLevel(breakdown){
 
 /* ---------- spreadsheet copy / paste ---------- */
 const COLS = {
-  parts:[['p','Word part'],['m','Meaning'],['e','Examples'],['t','Type'],['s','Topic'],['l','Level']],
+  parts:[['p','Prefix, suffix or root word'],['m','Meaning'],['e','Examples'],['t','Type'],['s','Topic'],['l','Level']],
   terms:[['t','Term'],['b','Breakdown'],['d','Definition'],['s','Topic'],['l','Level']],
-  ants:[['a','Word part'],['b','Opposite'],['e','Example'],['l','Level']],
+  ants:[['a','Term'],['b','Opposite'],['e','Example'],['l','Level']],
   abbr:[['a','Abbreviation or term'],['m','Meaning'],['g','Group'],['n','Note'],['l','Level']]
 };
 const TYPE_NAMES = {prefix:'Prefix', root:'Root', suffix:'Suffix'};
@@ -505,8 +506,9 @@ function parsePaste(k, text){
   const cols = COLS[k];
   let order = cols.map(c => c[0]);
   const head = lines[0].split('\t').map(h => h.trim().toLowerCase());
-  if (head.some(h => cols.some(c => c[1].toLowerCase()===h))){
-    order = head.map(h => (cols.find(c => c[1].toLowerCase()===h) || [null])[0]);
+  if (head.some(h => h==='word part' || cols.some(c => c[1].toLowerCase()===h))){
+    const alias = {'word part': k==='ants' ? 'a' : 'p'};
+    order = head.map(h => (cols.find(c => c[1].toLowerCase()===h) || [alias[h] || null])[0]);
     lines.shift();
   }
   const items = [], errors = [];
@@ -531,7 +533,7 @@ function parsePaste(k, text){
     if (L===null){ errors.push(`${row}: level "${raw.l}" should be 1, 2, 3 or 4`); return; }
     raw.l = L || (k==='terms' ? suggestLevel(raw.b) : 2);
     const item = clean(k, raw);
-    if (!item){ errors.push(`${row}: ${k==='parts' ? 'word part and meaning are' : k==='terms' ? 'term and definition are' : k==='abbr' ? 'abbreviation and meaning are' : 'both word parts are'} required`); return; }
+    if (!item){ errors.push(`${row}: ${k==='parts' ? 'the prefix, suffix or root word and its meaning are' : k==='terms' ? 'term and definition are' : k==='abbr' ? 'abbreviation and meaning are' : 'both terms are'} required`); return; }
     items.push(item);
   });
   return {items, errors};
@@ -540,7 +542,7 @@ const itemKey = (k, x) => k==='parts' ? norm(x.p)+'|'+norm(x.m) : k==='terms' ? 
 
 /* ---------- editor view ---------- */
 const E = {tab:'parts', q:'', lv:'all', editing:null, confirm:false, paste:false, pasteText:'', pasteMode:'merge', preview:null, status:'', err:''};
-const TAB_NAMES = {parts:'Word parts', terms:'Whole terms', ants:'Opposites', abbr:'Abbreviations'};
+const TAB_NAMES = {parts:'Prefixes, suffixes & roots', terms:'Whole terms', ants:'Opposites', abbr:'Abbreviations'};
 function paintStatus(){
   const s = $('#estatus'); if (s) s.textContent = E.status;
   const e = $('#eerr'); if (e){ e.textContent = E.err; e.hidden = !E.err; }
@@ -561,7 +563,7 @@ function formHTML(k){
   let f;
   if (k==='parts'){
     const t = x ? x.t : 'root';
-    f = `<label>Word part<input id="f-p" value="${esc(x ? x.p : '')}" placeholder="e.g. Gastr/o, -itis, Hyper-"></label>
+    f = `<label>Prefix, suffix or root word<input id="f-p" value="${esc(x ? x.p : '')}" placeholder="e.g. Gastr/o, -itis, Hyper-"></label>
       <label>Meaning<input id="f-m" value="${esc(x ? x.m : '')}" placeholder="e.g. Stomach"></label>
       <label class="wide">Examples <span class="hint">One per line, as "Term: definition"</span><textarea id="f-e" rows="3">${esc(x ? x.e.join('\n') : '')}</textarea></label>
       <label>Type<select id="f-t">${opt('prefix','Prefix',t)}${opt('root','Root',t)}${opt('suffix','Suffix',t)}</select></label>
@@ -570,7 +572,7 @@ function formHTML(k){
   } else if (k==='terms'){
     f = `<label>Term<input id="f-t" value="${esc(x ? x.t : '')}" placeholder="e.g. Gastropexy"></label>
       <label>Topic<select id="f-s">${TERM_TOPICS.map(([v,n]) => opt(v,n,x ? x.s : 'general')).join('')}</select></label>
-      <label class="wide">Breakdown <span class="hint">Word parts joined with +, e.g. gastr/o (stomach) + -pexy (fixation)</span><input id="f-b" value="${esc(x ? x.b : '')}"></label>
+      <label class="wide">Breakdown <span class="hint">Prefixes, roots and suffixes joined with +, e.g. gastr/o (stomach) + -pexy (fixation)</span><input id="f-b" value="${esc(x ? x.b : '')}"></label>
       <label class="wide">Definition<input id="f-d" value="${esc(x ? x.d : '')}" placeholder="e.g. Suturing the stomach to the body wall to prevent GDV"></label>
       ${levelRadios(x ? x.l : 2)}<button type="button" class="ghost small" id="f-suggest">Suggest level from breakdown</button>`;
   } else if (k==='abbr'){
@@ -580,7 +582,7 @@ function formHTML(k){
       <label class="wide">Note <span class="hint">Optional, shown after answering, e.g. Latin: bis in die</span><input id="f-n" value="${esc(x ? x.n : '')}"></label>
       ${levelRadios(x ? x.l : 1)}`;
   } else {
-    f = `<label>Word part<input id="f-a" value=""${esc(x ? x.a : '')}" placeholder="e.g. Tachy-"></label>
+    f = `<label>Term<input id="f-a" value="${esc(x ? x.a : '')}" placeholder="e.g. Tachy-"></label>
       <label>Opposite<input id="f-b" value="${esc(x ? x.b : '')}" placeholder="e.g. Brady-"></label>
       <label class="wide">Example<input id="f-e" value="${esc(x ? x.e : '')}" placeholder="e.g. Tachycardia (fast) / bradycardia (slow)"></label>
       ${levelRadios(x ? x.l : 1)}`;
@@ -608,7 +610,7 @@ async function commit(k, next){
 }
 async function submitForm(k){
   const item = readForm(k);
-  if (!item){ E.err = k==='parts' ? 'Add a word part and its meaning.' : k==='terms' ? 'Add the term and its definition.' : k==='abbr' ? 'Add the abbreviation and its meaning.' : 'Add both word parts.'; paintStatus(); return; }
+  if (!item){ E.err = k==='parts' ? 'Add the prefix, suffix or root word and its meaning.' : k==='terms' ? 'Add the term and its definition.' : k==='abbr' ? 'Add the abbreviation and its meaning.' : 'Add both terms.'; paintStatus(); return; }
   const list = getList(k).slice(), at = E.editing==='new' ? -1 : E.editing;
   if (k==='abbr' && at>=0) item.x = list[at].x || '';
   if (k==='parts' && at>=0 && (item.t!==list[at].t || item.s!==list[at].s)) item.c = autoC(item.t, item.s);
@@ -785,7 +787,7 @@ function renderHome(){
   const levels = LEVELS.map(([k,n,d]) => `<button class="lvl" data-level="${k}" aria-pressed="${S.level===k}" ${levelAvailable(S.mode,k)?'':'disabled'}>
       <b>${dots(k)}${k==='all'?'':`<span class="lvn">${k}</span>`}${n}</b>${d?`<span>${d}</span>`:'<span>Mix of all three</span>'}</button>`).join('');
   const count = S.mode==='abbr' ? abbrFor(S.topic).length : S.mode==='opposites' ? antsFor().length : S.mode==='decode' ? termsFor(S.topic).length : S.mode==='blitz' ? partsFor(S.topic).length + termsFor(S.topic).length : partsFor(S.topic).length;
-  const what = S.mode==='abbr' ? 'abbreviations and terms' : S.mode==='opposites' ? 'antonym pairs' : S.mode==='decode' ? 'whole terms' : S.mode==='blitz' ? 'word parts and terms' : 'word parts';
+  const what = S.mode==='abbr' ? 'abbreviations and terms' : S.mode==='opposites' ? 'antonym pairs' : S.mode==='decode' ? 'whole terms' : S.mode==='blitz' ? 'prefixes, suffixes, root words and terms' : 'prefixes, suffixes and root words';
   const tip = S.mode==='abbr' ? `${ROUND} questions per round. Most show the abbreviation; some ask you to name it.`
     : S.mode==='opposites' ? 'Opposites covers all topics at once.'
     : S.mode==='decode' ? 'Decode uses whole terms, so it is sorted by body system only.'
@@ -800,7 +802,7 @@ function renderHome(){
     <section class="section"><span class="label">Topic</span><div class="chips">${chips}</div>
       <p class="note">${count} ${what} in this selection. ${tip}</p></section>
     <button class="start" id="go">Start</button>
-    <footer class="srcnote"><span>${LIST_KEYS.some(k => LIVE.live[k]) ? `Term list updated ${lastUpdated() || 'recently'}` : 'Built-in term list'} · ${P.length} word parts, ${T.length} terms, ${A.length} opposite pairs, ${X.length} abbreviations</span>
+    <footer class="srcnote"><span>${LIST_KEYS.some(k => LIVE.live[k]) ? `Term list updated ${lastUpdated() || 'recently'}` : 'Built-in term list'} · ${P.length} prefixes, suffixes and root words, ${T.length} terms, ${A.length} opposite pairs, ${X.length} abbreviations</span>
       ${LIVE.canEdit ? '<button class="ghost small" id="edit">Edit term list</button>' : ''}</footer>
     ${themeOpen ? themeSheet() : ''}`;
   $('#themebtn').onclick = () => { themeOpen = true; render(); const s = document.querySelector('.trow[aria-pressed="true"]'); if (s) s.focus({preventScroll:true}); };
