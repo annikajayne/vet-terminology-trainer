@@ -175,6 +175,27 @@ select:disabled{opacity:.45}
 .preview{background:var(--sunk);border-radius:10px;padding:10px 14px}
 .errs{margin:6px 0 0;padding-left:1.1em;color:var(--bad);font-size:.9rem}
 .copybox{font-size:.8rem}
+/* themes */
+.brandtop{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.themebtn{display:inline-flex;align-items:center;gap:8px}
+.sw{width:18px;height:18px;border-radius:50%;flex:none;border:1.5px solid var(--line);display:inline-block}
+.sw-auto{background:linear-gradient(135deg,#EDF2F1 0 34%,#0B7268 34% 50%,#0D1615 50% 84%,#43C3B4 84% 100%)}
+.shade{position:fixed;inset:0;background:rgba(8,14,14,.45);z-index:40}
+.sheet{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:520px;max-height:88vh;overflow:auto;z-index:50;background:var(--surface);color:var(--ink);
+  border-radius:18px 18px 0 0;box-shadow:0 -12px 40px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:2px;
+  padding:14px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheethead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.sheethead h2{font-size:1.25rem}
+.trow{display:flex;align-items:center;gap:12px;text-align:left;padding:9px 10px;border-radius:10px;border:2px solid transparent;background:transparent}
+.trow:hover{border-color:var(--line)}
+.trow[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.trow .sw{width:30px;height:30px;border-width:2px}
+.tname{display:flex;flex-direction:column;line-height:1.25}
+.tname b{font-family:var(--display)}
+.tname small{color:var(--muted);font-size:.8rem}
+.tbadge{margin-left:auto;font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;background:var(--ink);color:var(--bg);border-radius:99px;padding:3px 9px}
+.tgroup{margin:10px 0 2px 10px}
+.sheet .note{margin:8px 10px 0}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -205,6 +226,37 @@ const MODES = {
   blitz:{name:'60-second blitz',desc:'Mixed questions against the clock.'}
 };
 const PART_ONLY = ['prefix','suffix','position'];
+
+/* ---------- colour themes ---------- */
+const SKINS = {"theatre": {"name": "Theatre", "group": "light", "t": {"--bg": "#E7F0F7", "--surface": "#FFFFFF", "--sunk": "#D5E5F1", "--ink": "#0E2236", "--muted": "#4E6479", "--line": "#C2D6E6", "--accent": "#1E5F8C", "--accent-ink": "#FFFFFF", "--accent-soft": "#D3E4F2", "--good": "#1E7A46", "--good-soft": "#DCF0E3", "--bad": "#B42318", "--bad-soft": "#FBE3E0", "--pulse": "#0E7C86"}}, "kennel": {"name": "Kennel", "group": "light", "t": {"--bg": "#F2EADD", "--surface": "#FFFBF4", "--sunk": "#E8DDCB", "--ink": "#2B2118", "--muted": "#6E5E4E", "--line": "#DACBB4", "--accent": "#B0502C", "--accent-ink": "#FFFFFF", "--accent-soft": "#F2DBCD", "--good": "#4A7A2C", "--good-soft": "#E2ECD4", "--bad": "#A3261B", "--bad-soft": "#F5DAD3", "--pulse": "#B0502C"}}, "pastel": {"name": "Pastel", "group": "light", "t": {"--bg": "#F4F2FB", "--surface": "#FFFFFF", "--sunk": "#EBE7F6", "--ink": "#2A2540", "--muted": "#6B6585", "--line": "#DCD6EE", "--accent": "#6F60BD", "--accent-ink": "#FFFFFF", "--accent-soft": "#E5E0F7", "--good": "#2B8A66", "--good-soft": "#DBF2E8", "--bad": "#C04A36", "--bad-soft": "#FCE3DA", "--pulse": "#D9805F"}}, "fairyfloss": {"name": "Fairy floss", "group": "light", "t": {"--bg": "#FCEEF4", "--surface": "#FFFFFF", "--sunk": "#F7DEE9", "--ink": "#3A1E2C", "--muted": "#7A5869", "--line": "#F0CEDC", "--accent": "#D23F7B", "--accent-ink": "#FFFFFF", "--accent-soft": "#FADCE8", "--good": "#23855C", "--good-soft": "#DDF2E8", "--bad": "#B4232F", "--bad-soft": "#FBE0E2", "--pulse": "#D23F7B"}}, "bondi": {"name": "Bondi", "group": "light", "t": {"--bg": "#E5F5FF", "--surface": "#FFFFFF", "--sunk": "#CCEAFB", "--ink": "#062033", "--muted": "#3D5F75", "--line": "#B6DEF5", "--accent": "#0083C9", "--accent-ink": "#FFFFFF", "--accent-soft": "#D0EDFC", "--good": "#12825A", "--good-soft": "#DAF2E7", "--bad": "#C02626", "--bad-soft": "#FDE1E1", "--pulse": "#F26B0F"}}, "sunshine": {"name": "Sunshine", "group": "light", "t": {"--bg": "#FFF4C4", "--surface": "#FFFFFF", "--sunk": "#FFE79A", "--ink": "#2B1F00", "--muted": "#6B5718", "--line": "#FFDC73", "--accent": "#E8590C", "--accent-ink": "#FFFFFF", "--accent-soft": "#FFE0C7", "--good": "#1D7A43", "--good-soft": "#DDF2E3", "--bad": "#B42318", "--bad-soft": "#FDE2DE", "--pulse": "#E8590C"}}, "eucalyptus": {"name": "Eucalyptus", "group": "light", "t": {"--bg": "#EDF2E8", "--surface": "#FBFCF8", "--sunk": "#DDE7D5", "--ink": "#1B2A1B", "--muted": "#526350", "--line": "#C9D8C0", "--accent": "#3D7337", "--accent-ink": "#FFFFFF", "--accent-soft": "#DAEAD2", "--good": "#17734B", "--good-soft": "#D8EFE1", "--bad": "#B42318", "--bad-soft": "#FAE2DE", "--pulse": "#B7861A"}}, "nightshift": {"name": "Night shift", "group": "dark", "t": {"--bg": "#1A1424", "--surface": "#241C31", "--sunk": "#2E253F", "--ink": "#EFE9F7", "--muted": "#AA9EBD", "--line": "#3A2F4D", "--accent": "#B9A0FF", "--accent-ink": "#1C0F36", "--accent-soft": "#372A58", "--good": "#5FD39A", "--good-soft": "#163427", "--bad": "#FF8E8E", "--bad-soft": "#41202A", "--pulse": "#FF9CC8"}}, "highcontrast": {"name": "High contrast", "group": "dark", "t": {"--bg": "#0B0B0B", "--surface": "#131313", "--sunk": "#1F1F1F", "--ink": "#FFFFFF", "--muted": "#E2E2E2", "--line": "#BDBDBD", "--accent": "#FFD54A", "--accent-ink": "#0B0B0B", "--accent-soft": "#2C2510", "--good": "#5BE49B", "--good-soft": "#0E2A1B", "--bad": "#FF8C8C", "--bad-soft": "#3A1212", "--pulse": "#FFD54A"}}};
+const SKIN_DESC = {highcontrast:'Extra-strong contrast for easier reading'};
+let skin = 'clinic', themeOpen = false;
+function applySkin(k){
+  const root = document.documentElement, prev = SKINS[skin];
+  if (prev) Object.keys(prev.t).forEach(v => root.style.removeProperty(v));
+  root.style.removeProperty('color-scheme');
+  skin = SKINS[k] ? k : 'clinic';
+  const s = SKINS[skin];
+  if (s){ Object.entries(s.t).forEach(([v,c]) => root.style.setProperty(v, c)); root.style.setProperty('color-scheme', s.group==='dark' ? 'dark' : 'light'); }
+}
+try { applySkin(JSON.parse(localStorage.getItem('vtt:skin')) || 'clinic'); } catch(e){}
+const swatch = k => {
+  if (!SKINS[k]) return '<span class="sw sw-auto" aria-hidden="true"></span>';
+  const t = SKINS[k].t; return `<span class="sw" aria-hidden="true" style="background:linear-gradient(135deg, ${t['--bg']} 0 50%, ${t['--accent']} 50% 100%)"></span>`;
+};
+function themeSheet(){
+  const row = (k, name, sub, badge) => `<button class="trow" data-skin="${k}" aria-pressed="${skin===k}">${swatch(k)}<span class="tname"><b>${name}</b>${sub ? `<small>${sub}</small>` : ''}</span>${badge ? '<span class="tbadge">Auto</span>' : ''}</button>`;
+  const group = g => Object.entries(SKINS).filter(([,s]) => s.group===g).map(([k,s]) => row(k, s.name, SKIN_DESC[k] || '')).join('');
+  return `<div class="shade" id="shade"></div>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-h">
+      <div class="sheethead"><h2 id="sheet-h">Colour theme</h2><button class="ghost small" id="theme-done">Done</button></div>
+      ${row('clinic', 'Clinic', 'Light or dark to match your device', true)}
+      <span class="label tgroup">Light</span>${group('light')}
+      <span class="label tgroup">Dark</span>${group('dark')}
+      <p class="note">Saved on this device only.</p>
+    </div>`;
+}
+function closeTheme(){ themeOpen = false; render(); const b = $('#themebtn'); if (b) b.focus({preventScroll:true}); }
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -269,13 +321,13 @@ function makeQ(kind, item){
     const same = P.filter(x => x.c===item.c), typ = P.filter(x => x.t===item.t);
     const ds = pickDistractors(item.m, meaningsOf[item.p], [same, typ, P], x => x.m);
     q = {ask:'What does this word part mean?', big:item.p, correct:item.m, ds, partOpts:false,
-         explain:`<b>${esc(item.p)}</b> = ${esc(item.m)}<ul>${item.e.map(e=>`<li>${esc(e)}</li>`).join('')}</ul>`};
+         explain:`<div><b>${esc(item.p)}</b> = ${esc(item.m)}</div><ul>${item.e.map(e=>`<li>${esc(e)}</li>`).join('')}</ul>`};
   } else if (kind==='reverse'){
     const banned = P.filter(x => norm(x.m)===norm(item.m)).map(x => norm(x.p));
     const same = P.filter(x => x.c===item.c), typ = P.filter(x => x.t===item.t);
     const ds = pickDistractors(item.p, banned, [same, typ], x => x.p);
     q = {ask:'Which word part means…', big:item.m, correct:item.p, ds, partOpts:true,
-         explain:`<b>${esc(item.p)}</b> = ${esc(item.m)}<ul>${item.e.map(e=>`<li>${esc(e)}</li>`).join('')}</ul>`};
+         explain:`<div><b>${esc(item.p)}</b> = ${esc(item.m)}</div><ul>${item.e.map(e=>`<li>${esc(e)}</li>`).join('')}</ul>`};
   } else if (kind==='decode'){
     const same = T.filter(x => x.s===item.s);
     const ds = pickDistractors(item.d, [], [same, T], x => x.d);
@@ -301,7 +353,7 @@ function makeQ(kind, item){
     const pool = A.flatMap(x => [x.a, x.b]).map(t => ({t}));
     const ds = pickDistractors(item.b, banned, [pool.filter(o => isPart(o.t)===isPart(item.b)), pool], x => x.t);
     q = {ask:'What is the opposite of…', big:item.a, correct:item.b, ds, partOpts:true,
-         explain:`<b>${esc(item.a)}</b> ↔ <b>${esc(item.b)}</b><div>${esc(item.e)}</div>`};
+         explain:`<div><b>${esc(item.a)}</b> ↔ <b>${esc(item.b)}</b></div><div>${esc(item.e)}</div>`};
   }
   const options = shuffle([q.correct, ...q.ds]);
   return {kind, src:item, ask:q.ask, big:q.big, options, answer:options.indexOf(q.correct), correct:q.correct,
@@ -738,7 +790,8 @@ function renderHome(){
     : S.mode==='blitz' ? 'Score as many as you can in 60 seconds. Streaks add bonus points.'
     : `${ROUND} questions per round. Streaks add bonus points.`;
   $('#app').innerHTML = `
-    <header class="brand"><span class="label">Veterinary nursing · student practice</span>
+    <header class="brand"><div class="brandtop"><span class="label">Veterinary nursing · student practice</span>
+      <button class="ghost small themebtn" id="themebtn" aria-haspopup="dialog">${swatch(skin)}Theme</button></div>
       <h1>Vet Terminology <span class="hy">Trainer</span></h1>
       <p>Prefixes, roots and suffixes with veterinary examples. Pick a game, a level and a topic, then answer with a tap or keys 1–4.</p></header>
     <section class="section"><span class="label">Game</span><div class="modes">${modeCards}</div></section>
@@ -747,7 +800,17 @@ function renderHome(){
       <p class="note">${count} ${what} in this selection. ${tip}</p></section>
     <button class="start" id="go">Start</button>
     <footer class="srcnote"><span>${LIST_KEYS.some(k => LIVE.live[k]) ? `Term list updated ${lastUpdated() || 'recently'}` : 'Built-in term list'} · ${P.length} word parts, ${T.length} terms, ${A.length} opposite pairs, ${X.length} abbreviations</span>
-      ${LIVE.canEdit ? '<button class="ghost small" id="edit">Edit term list</button>' : ''}</footer>`;
+      ${LIVE.canEdit ? '<button class="ghost small" id="edit">Edit term list</button>' : ''}</footer>
+    ${themeOpen ? themeSheet() : ''}`;
+  $('#themebtn').onclick = () => { themeOpen = true; render(); const s = document.querySelector('.trow[aria-pressed="true"]'); if (s) s.focus({preventScroll:true}); };
+  if (themeOpen){
+    document.querySelectorAll('.trow').forEach(b => b.onclick = () => {
+      applySkin(b.dataset.skin); try { localStorage.setItem('vtt:skin', JSON.stringify(skin)); } catch(e){}
+      document.querySelectorAll('.trow').forEach(x => x.setAttribute('aria-pressed', String(x===b)));
+      $('#themebtn').innerHTML = swatch(skin) + 'Theme';
+    });
+    $('#theme-done').onclick = closeTheme; $('#shade').onclick = closeTheme;
+  }
   document.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { S.mode = b.dataset.mode; render(); });
   document.querySelectorAll('[data-topic]').forEach(b => b.onclick = () => { S.topic = b.dataset.topic; render(); });
   document.querySelectorAll('[data-level]').forEach(b => b.onclick = () => { S.level = b.dataset.level; render(); });
@@ -820,6 +883,7 @@ function render(){
   store.set('prefs', {mode:S.mode, topic:S.topic, level:S.level});
 }
 document.addEventListener('keydown', e => {
+  if (themeOpen && e.key==='Escape'){ e.preventDefault(); closeTheme(); return; }
   if (S.screen!=='play' || !S.q || e.metaKey || e.ctrlKey || e.altKey) return;
   if (S.q.picked===null && /^[1-4]$/.test(e.key)){ e.preventDefault(); answer(+e.key-1); }
   else if (S.q.picked!==null && e.key==='Enter' && document.activeElement?.id!=='next'){ e.preventDefault(); if (!(S.mode==='blitz'&&!S.practice)) nextQ(); }
