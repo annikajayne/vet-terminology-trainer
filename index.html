@@ -176,7 +176,9 @@ select:disabled{opacity:.45}
 .errs{margin:6px 0 0;padding-left:1.1em;color:var(--bad);font-size:.9rem}
 .copybox{font-size:.8rem}
 /* themes */
-.brandtop{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brandtop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.brandtop h1{min-width:0}
+.themebtn{flex:none;margin-top:6px}
 .themebtn{display:inline-flex;align-items:center;gap:8px}
 .sw{width:18px;height:18px;border-radius:50%;flex:none;border:1.5px solid var(--line);display:inline-block}
 .sw-auto{background:linear-gradient(135deg,#EDF2F1 0 34%,#0B7268 34% 50%,#0D1615 50% 84%,#43C3B4 84% 100%)}
@@ -790,10 +792,9 @@ function renderHome(){
     : S.mode==='blitz' ? 'Score as many as you can in 60 seconds. Streaks add bonus points.'
     : `${ROUND} questions per round. Streaks add bonus points.`;
   $('#app').innerHTML = `
-    <header class="brand"><div class="brandtop"><span class="label">Veterinary nursing · student practice</span>
+    <header class="brand"><div class="brandtop"><h1>Vet Terminology <span class="hy">Trainer</span></h1>
       <button class="ghost small themebtn" id="themebtn" aria-haspopup="dialog">${swatch(skin)}Theme</button></div>
-      <h1>Vet Terminology <span class="hy">Trainer</span></h1>
-      <p>Prefixes, roots and suffixes with veterinary examples. Pick a game, a level and a topic, then answer with a tap or keys 1–4.</p></header>
+      <p>Learn veterinary terminology: word parts, clinical terms, abbreviations, lab values, drug types and surgeries, at four levels from Foundation to Advanced. Pick a game, a level and a topic, then answer with a tap or keys 1–4.</p></header>
     <section class="section"><span class="label">Game</span><div class="modes">${modeCards}</div></section>
     <section class="section"><span class="label">Level</span><div class="lvls">${levels}</div></section>
     <section class="section"><span class="label">Topic</span><div class="chips">${chips}</div>
