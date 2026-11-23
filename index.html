@@ -72,13 +72,16 @@ button:focus-visible,.chip:focus-visible{outline:3px solid var(--accent);outline
 /* levels */
 .lvls{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
 @media (max-width:620px){.lvls{grid-template-columns:1fr 1fr}.lvl[data-level="all"]{grid-column:1/-1}}
-.lvl{display:flex;flex-direction:column;gap:3px;text-align:left;padding:10px 12px;border-radius:12px;background:var(--surface);border:2px solid var(--line)}
+.lvl{display:flex;flex-direction:column;gap:3px;text-align:left;padding:10px 12px;min-width:0;border-radius:12px;background:var(--surface);border:2px solid var(--line)}
 .lvl:hover:not(:disabled){border-color:var(--accent)}
 .lvl[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
 .lvl:disabled{opacity:.35;cursor:not-allowed}
-.lvl b{display:flex;align-items:center;gap:7px;font-family:var(--display);font-size:1.02rem}
+.lvl b{display:flex;flex-direction:column;align-items:flex-start;gap:5px;font-family:var(--display);font-size:1.02rem;line-height:1.15;overflow-wrap:anywhere}
+.lvl .dots{height:8px;align-items:center}
+.lvl .nodots{display:block;height:8px}
 .lvl .lvn{display:none}
-.lvl span{color:var(--muted);font-size:.8rem;line-height:1.3}
+.lvl > span{color:var(--muted);font-size:.8rem;line-height:1.3}
+.lvl .lvname{color:var(--ink)}
 .dots{display:inline-flex;gap:3px;flex:none}
 .dots i{width:7px;height:7px;border-radius:50%;border:1.5px solid var(--accent)}
 .dots i.on{background:var(--accent)}
@@ -785,7 +788,7 @@ function renderHome(){
   }).join('');
   const chips = topicsFor(S.mode).map(([k,n]) => `<button class="chip" data-topic="${k}" aria-pressed="${S.topic===k}" ${topicAvailable(S.mode,k,S.level)?'':'disabled'}>${n}</button>`).join('');
   const levels = LEVELS.map(([k,n,d]) => `<button class="lvl" data-level="${k}" aria-pressed="${S.level===k}" ${levelAvailable(S.mode,k)?'':'disabled'}>
-      <b>${dots(k)}${k==='all'?'':`<span class="lvn">${k}</span>`}${n}</b>${d?`<span>${d}</span>`:'<span>Mix of all three</span>'}</button>`).join('');
+      <b>${k==='all' ? '<span class="nodots"></span>' : dots(k)}<span class="lvname">${n}</span></b>${d?`<span>${d}</span>`:'<span>Mix of all three</span>'}</button>`).join('');
   const count = S.mode==='abbr' ? abbrFor(S.topic).length : S.mode==='opposites' ? antsFor().length : S.mode==='decode' ? termsFor(S.topic).length : S.mode==='blitz' ? partsFor(S.topic).length + termsFor(S.topic).length : partsFor(S.topic).length;
   const what = S.mode==='abbr' ? 'abbreviations and terms' : S.mode==='opposites' ? 'antonym pairs' : S.mode==='decode' ? 'whole terms' : S.mode==='blitz' ? 'prefixes, suffixes, root words and terms' : 'prefixes, suffixes and root words';
   const tip = S.mode==='abbr' ? `${ROUND} questions per round. Most show the abbreviation; some ask you to name it.`
