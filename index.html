@@ -272,6 +272,35 @@ const store = {
   get(k){ try{ return JSON.parse(localStorage.getItem('vtt:'+k)); }catch(e){ return null; } },
   set(k,v){ try{ localStorage.setItem('vtt:'+k, JSON.stringify(v)); }catch(e){} }
 };
+/* ---------- no repeats until the whole selection has been seen ---------- */
+const memSeen = {};
+const itemId = (kind, it) => kind==='decode' ? 't:'+it.t : kind==='opposites' ? 'o:'+it.a+'|'+it.b
+  : (kind==='abbr' || kind==='abbrrev') ? 'x:'+it.a : 'p:'+it.p+'|'+it.m;
+const seenKeyFor = (mode, level, topic) => `seen:${mode}:${level}:${topic}`;
+function getSeen(key){ const v = memSeen[key] || store.get(key); return new Set(Array.isArray(v) ? v : []); }
+function setSeen(key, set){ const arr = [...set]; memSeen[key] = arr; store.set(key, arr); }
+function markSeen(q){
+  if (!S.seenKey || !q) return;
+  const s = getSeen(S.seenKey); s.add(itemId(q.kind, q.src)); setSeen(S.seenKey, s);
+}
+const poolFor = (mode, topic) => mode==='decode' ? termsFor(topic) : mode==='opposites' ? antsFor() : mode==='abbr' ? abbrFor(topic) : partsFor(topic);
+function pickFresh(mode, topic, n){
+  const key = seenKeyFor(mode, S.level, topic), pool = poolFor(mode, topic), idk = mode==='abbr' ? 'abbr' : mode;
+  let seen = getSeen(key);
+  const fresh = shuffle(pool.filter(it => !seen.has(itemId(idk, it))));
+  let picks = fresh.slice(0, n);
+  if (picks.length < n){
+    // everything has now been seen: start a new cycle, without repeating this round's picks
+    const extra = shuffle(pool.filter(it => !picks.includes(it))).slice(0, n - picks.length);
+    picks = picks.concat(extra);
+    setSeen(key, new Set());
+  }
+  return picks;
+}
+function seenCount(mode, topic){
+  const pool = poolFor(mode, topic), idk = mode==='abbr' ? 'abbr' : mode, seen = getSeen(seenKeyFor(mode, S.level, topic));
+  return pool.filter(it => seen.has(itemId(idk, it))).length;
+}
 
 /* ---------- pools ---------- */
 function partMatches(p, topic){
@@ -377,7 +406,11 @@ function blitzKinds(topic){
 function randomQ(topic){
   const kinds = blitzKinds(topic), kind = kinds[Math.floor(Math.random()*kinds.length)];
   const pool = kind==='decode' ? termsFor(topic) : kind==='opposites' ? antsFor() : kind==='abbr' ? abbrFor('all') : partsFor(topic);
-  return makeQ(kind, pool[Math.floor(Math.random()*pool.length)]);
+  const idk = kind==='abbr' ? 'abbr' : kind, key = S.seenKey;
+  const seen = key ? getSeen(key) : new Set();
+  let cand = pool.filter(it => !seen.has(itemId(idk, it)));
+  if (!cand.length){ pool.forEach(it => seen.delete(itemId(idk, it))); if (key) setSeen(key, seen); cand = pool; }
+  return makeQ(kind, cand[Math.floor(Math.random()*cand.length)]);
 }
 
 /* ---------- shared term list (db) ---------- */
@@ -726,14 +759,14 @@ let tick = null;
 
 function startRound(practiceItems){
   const {mode, topic} = S;
-  Object.assign(S, {screen:'play', i:0, score:0, streak:0, bestStreak:0, right:0, answered:0, missed:[], practice:!!practiceItems, lastBest:false});
+  Object.assign(S, {screen:'play', i:0, score:0, streak:0, bestStreak:0, right:0, answered:0, missed:[], practice:!!practiceItems, lastBest:false,
+    seenKey: practiceItems ? null : seenKeyFor(mode, S.level, topic)});
   if (practiceItems){
     S.queue = shuffle(practiceItems);
   } else if (mode==='blitz'){
     S.queue = []; S.endAt = Date.now() + BLITZ_SECS*1000;
   } else {
-    const pool = mode==='decode' ? termsFor(topic) : mode==='opposites' ? antsFor() : mode==='abbr' ? abbrFor(topic) : partsFor(topic);
-    S.queue = shuffle(pool).slice(0, ROUND).map(item => ({kind: mode==='abbr' ? (Math.random()<0.7 ? 'abbr' : 'abbrrev') : mode, item}));
+    S.queue = pickFresh(mode, topic, ROUND).map(item => ({kind: mode==='abbr' ? (Math.random()<0.7 ? 'abbr' : 'abbrrev') : mode, item}));
   }
   nextQ(true);
 }
@@ -746,6 +779,7 @@ function nextQ(first){
     if (S.i >= S.queue.length) return finish();
     const {kind,item} = S.queue[S.i]; S.q = makeQ(kind, item);
   }
+  markSeen(S.q);
   render();
 }
 function answer(idx){
@@ -803,7 +837,7 @@ function renderHome(){
     <section class="section"><span class="label">Game</span><div class="modes">${modeCards}</div></section>
     <section class="section"><span class="label">Level</span><div class="lvls">${levels}</div></section>
     <section class="section"><span class="label">Topic</span><div class="chips">${chips}</div>
-      <p class="note">${count} ${what} in this selection. ${tip}</p></section>
+      <p class="note">${count} ${what} in this selection.${S.mode!=='blitz' && count ? (() => { const n = Math.min(seenCount(S.mode, S.topic), count); return n ? ` You've seen ${n} of ${count} so far; unseen ones come first.` : ''; })() : ''} ${tip}</p></section>
     <button class="start" id="go">Start</button>
     <footer class="srcnote"><span>${LIST_KEYS.some(k => LIVE.live[k]) ? `Term list updated ${lastUpdated() || 'recently'}` : 'Built-in term list'} · ${P.length} prefixes, suffixes and root words, ${T.length} terms, ${A.length} opposite pairs, ${X.length} abbreviations</span>
       ${LIVE.canEdit ? '<button class="ghost small" id="edit">Edit term list</button>' : ''}</footer>
